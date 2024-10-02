@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 
@@ -25,14 +26,17 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public List<OrderPojo> getOrderByUser(int userId) {
-        RestClient restClient = RestClient.create();
-        List<OrderPojo> allOrders = restClient
-                .get()
-                .uri("http://localhost:8081/api/user/"+userId)
-                .retrieve()
-                .body(List.class);
-        
-        return allOrders;
+        WebClient webClient = WebClient.create();
+    
+    List<OrderPojo> allOrders = webClient
+            .get()
+            .uri("http://localhost:8081/api/user/{userId}", userId)
+            .retrieve()
+            .bodyToFlux(OrderPojo.class)
+            .collectList()
+            .block();
+    
+    return allOrders;
     }
 
     private UserPojo mapToUser(User user){
